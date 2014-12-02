@@ -1,8 +1,8 @@
 `define DATA_SIZE 32
 `define ACCUM_SIZE 64
-`define NUM_FEAT 2
-`define NUM_SV 3
-`define NUM_INST 2
+`define NUM_FEAT 16
+`define NUM_SV 10
+`define NUM_INST 5
 
 /*
   NOTE: "results" is valid ONE CYCLE AFTER "done" is asserted!
@@ -13,26 +13,35 @@ module hw_svm
 
   // support vectors
   logic [$clog2(`NUM_SV)-1:0]   sv_i;
-  logic [`DATA_SIZE-1:0]  sv_in[`NUM_FEAT-1:0];
-  logic [`DATA_SIZE-1:0]  support_vectors[`NUM_SV-1:0][`NUM_FEAT-1:0];
+  logic signed [`DATA_SIZE-1:0]  sv_in[`NUM_FEAT-1:0];
+  logic signed [`DATA_SIZE-1:0]  support_vectors[`NUM_SV-1:0][`NUM_FEAT-1:0];
   // test vector stuff
   logic last_input;
   logic [$clog2(`NUM_INST)-1:0] test_i;
-  logic [`NUM_FEAT-1:0][`DATA_SIZE-1:0] test_vectors[`NUM_INST-1:0];
-  logic [`NUM_FEAT-1:0][`DATA_SIZE-1:0] test_vector;
+  logic signed [`NUM_FEAT-1:0][`DATA_SIZE-1:0] test_vectors[`NUM_INST-1:0];
+  logic signed [`NUM_FEAT-1:0][`DATA_SIZE-1:0] test_vector;
   // interconnect
-  logic [`NUM_FEAT-1:0][`NUM_FEAT-1:0][`DATA_SIZE-1:0]  curr_vector_in,
+  logic signed [`NUM_FEAT-1:0][`NUM_FEAT-1:0][`DATA_SIZE-1:0]  curr_vector_in,
                                                         curr_vector_out;
-  logic [`NUM_FEAT-1:0][`ACCUM_SIZE-1:0]                accum_in, accum_out;
-  logic [`ACCUM_SIZE-1:0]       result;
+  logic signed [`NUM_FEAT-1:0][`ACCUM_SIZE-1:0]                accum_in, accum_out;
+  logic signed [`ACCUM_SIZE-1:0]       result;
   // misc
   logic                         start_inner, last_inner, final_inst;
   logic [$clog2(`NUM_FEAT)-1:0] delay;
-  logic [`NUM_INST-1:0][`ACCUM_SIZE-1:0]  results;
+  logic signed [`NUM_INST-1:0][`ACCUM_SIZE-1:0]  results;
+  logic signed [`NUM_INST-1:0]         labels;
 
   initial begin
     $readmemh("sv.hex", support_vectors);
     $readmemh("test.hex", test_vectors);
+  end
+
+  int k;
+
+  // labels are whether each result is negative
+  always_comb begin
+    for (k=0;k<`NUM_INST;k++)
+      labels[k] = ~results[k][`ACCUM_SIZE-1];
   end
 
   // interconnect
@@ -131,7 +140,8 @@ module hw_svm_tb;
     start <= 1;
     @(posedge clk);
     start <= 0;
-    
+    //$monitor("accum[0]: %x, accum[1]: %x, result: %x",
+    //          dut.accum_out[0], dut.accum_out[1], dut.result);
     @(posedge done);
     repeat (2) @(posedge clk);
     for (i=0;i<`NUM_INST;i++) $display("%x", dut.results[i]);

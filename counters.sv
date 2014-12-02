@@ -7,8 +7,8 @@ module result_counter
    parameter NUM_SV = 3,
    parameter NUM_INST = 2)
  (input   logic clk, rst, start, done,
-  input   logic [ACCUM_SIZE-1:0]  result,
-  output  logic [NUM_INST-1:0][ACCUM_SIZE-1:0]  results);
+  input   logic signed [ACCUM_SIZE-1:0]  result,
+  output  logic signed [NUM_INST-1:0][ACCUM_SIZE-1:0]  results);
 
   enum  logic [1:0] {IDLE, FIRST, LATER} count_cs;
 

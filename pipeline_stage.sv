@@ -4,11 +4,11 @@ module pipeline_stage
     parameter NUM_FEAT = 2,
     parameter FEAT_I = 0)
 ( input   logic                               clk, rst, start_inner, last_inner,
-  input   logic [DATA_SIZE-1:0]               sv,
-  input   logic [NUM_FEAT-1:0][DATA_SIZE-1:0] curr_vector_in,
-  input   logic [ACCUM_SIZE-1:0]              accum_in,
-  output  logic [NUM_FEAT-1:0][DATA_SIZE-1:0] curr_vector_out,
-  output  logic [ACCUM_SIZE-1:0]              accum_out);
+  input   logic signed [DATA_SIZE-1:0]               sv,
+  input   logic signed [NUM_FEAT-1:0][DATA_SIZE-1:0] curr_vector_in,
+  input   logic signed [ACCUM_SIZE-1:0]              accum_in,
+  output  logic signed [NUM_FEAT-1:0][DATA_SIZE-1:0] curr_vector_out,
+  output  logic signed [ACCUM_SIZE-1:0]              accum_out);
 
   // state
   enum  logic {INIT, RUN} cs;

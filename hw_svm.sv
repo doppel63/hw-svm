@@ -14,7 +14,8 @@ module hw_svm
   // support vectors
   logic [$clog2(`NUM_SV)-1:0]   sv_i;
   logic signed [`DATA_SIZE-1:0]  sv_in[`NUM_FEAT-1:0];
-  logic signed [`DATA_SIZE-1:0]  support_vectors[`NUM_SV-1:0][`NUM_FEAT-1:0];
+  //logic signed [`DATA_SIZE-1:0]  support_vectors[`NUM_SV-1:0][`NUM_FEAT-1:0];
+  logic signed [`DATA_SIZE-1:0] support_vectors[`NUM_SV*`NUM_FEAT-1:0];
   // test vector stuff
   logic last_input;
   logic [$clog2(`NUM_INST)-1:0] test_i;
@@ -30,7 +31,7 @@ module hw_svm
   logic [$clog2(`NUM_FEAT)-1:0] delay;
   logic signed [`NUM_INST-1:0][`ACCUM_SIZE-1:0]  results;
   logic signed [`NUM_INST-1:0]         labels;
-
+  
   initial begin
     $readmemh("sv.hex", support_vectors);
     $readmemh("test.hex", test_vectors);
@@ -43,10 +44,23 @@ module hw_svm
     for (k=0;k<`NUM_INST;k++)
       labels[k] = ~results[k][`ACCUM_SIZE-1];
   end
-
+  
   // interconnect
   always_comb begin
-    sv_in = support_vectors[sv_i];
+	 case (sv_i)
+		0:	sv_in = support_vectors[`NUM_FEAT-1:0];
+		1:	sv_in = support_vectors[2*`NUM_FEAT-1:`NUM_FEAT];
+		2:	sv_in = support_vectors[3*`NUM_FEAT-1:2*`NUM_FEAT];
+		3:	sv_in = support_vectors[4*`NUM_FEAT-1:3*`NUM_FEAT];
+		4:	sv_in = support_vectors[5*`NUM_FEAT-1:4*`NUM_FEAT];
+		5:	sv_in = support_vectors[6*`NUM_FEAT-1:5*`NUM_FEAT];
+		6:	sv_in = support_vectors[7*`NUM_FEAT-1:6*`NUM_FEAT];
+		7:	sv_in = support_vectors[8*`NUM_FEAT-1:7*`NUM_FEAT];
+		8:	sv_in = support_vectors[9*`NUM_FEAT-1:8*`NUM_FEAT];
+		9:	sv_in = support_vectors[10*`NUM_FEAT-1:9*`NUM_FEAT];
+		default:	sv_in = support_vectors[`NUM_FEAT-1:0];
+	 endcase
+	 //sv_in = support_vectors[sv_i];
     test_vector = test_vectors[test_i];
     last_input = test_i == (`NUM_INST-1);
     curr_vector_in = {curr_vector_out[`NUM_FEAT-2:0], test_vector};
@@ -56,7 +70,7 @@ module hw_svm
 
   generate
     genvar i; // i is index of feature
-    for (i=0; i<`NUM_FEAT; i++) begin
+    for (i=0; i<`NUM_FEAT; i++) begin: PIPELINE
       pipeline_stage #(`DATA_SIZE, `ACCUM_SIZE, `NUM_FEAT, i)
                       pipeline_module(.sv(sv_in[i]),
                                       .curr_vector_in(curr_vector_in[i]),
@@ -115,7 +129,7 @@ module hw_svm
   result_counter #(`ACCUM_SIZE, `NUM_FEAT, `NUM_SV, `NUM_INST) rc(.*);
  
 endmodule: hw_svm
-
+/*
 module hw_svm_tb;
 
   // assume 3 SVs, 2 features, 2 test instances, 32 bit data, 64 bit accum
@@ -149,3 +163,4 @@ module hw_svm_tb;
   end
 
 endmodule: hw_svm_tb
+*/
